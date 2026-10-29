@@ -79,7 +79,7 @@ progress = 25 + 70 × (1 - e^(-已完成step数 / 3.2))  [+8 若正在执行工�
 托盘程序靠一个 DSH 宿主插件获取状态。在 DSH 所在终端执行：
 
 ```powershell
-dsh plugin --profile desktop add github:DeeepMind/dsh-haloring-status
+dsh plugin --profile desktop add "https://github.com/DeeepMind/dsh-haloring-status.git"
 ```
 
 安装后**重启 DSH 一次**加载插件。验证：`%USERPROFILE%\.dsh\dsh-status.txt`
