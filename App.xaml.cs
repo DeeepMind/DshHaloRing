@@ -263,8 +263,9 @@ public partial class App : Application
             return;
         }
 
-        // 进度总是跟随最新快照
-        _loop.SetProgress(snapshot.Progress);
+        // 空闲态：进度强制满环 100%，用于与「离线」（空环）区分。
+        // 状态源此时给的 progress 通常是 0，直接透传会让空闲和离线长得一样。
+        _loop.SetProgress(snapshot.State == AgentState.Idle ? 1.0 : snapshot.Progress);
 
         // 关键：只让“快照里声明的那个状态”成立，其余全部撤销，
         // 再由优先级表合成最终显示状态（这样降级+运行同时成立时，降级胜出）。

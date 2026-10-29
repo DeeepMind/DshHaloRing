@@ -37,7 +37,7 @@ public static class IconSampler
         (AgentState.WaitingForUser, 0.35, "等待35%"),
         (AgentState.Degraded, 0.60, "降级60%"),
         (AgentState.Fault, 0.45, "故障45%"),
-        (AgentState.Idle, 0.00, "空闲0%"),
+        (AgentState.Idle, 1.00, "空闲100%"),
         (AgentState.Offline, 0.00, "离线0%"),
     };
 

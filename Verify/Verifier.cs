@@ -32,7 +32,7 @@ public static class Verifier
         {
             double progress = state switch
             {
-                AgentState.Idle => 0.0,
+                AgentState.Idle => 1.0,        // 空闲满环，与离线的空环区分
                 AgentState.Offline => 0.0,
                 AgentState.Completed => 1.0,
                 AgentState.Fault => 0.35,
@@ -72,6 +72,7 @@ public static class Verifier
         checks.Add(CheckThemeSwitching(settings));
         checks.AddRange(CheckDshStatusParsing());
         checks.Add(CheckProgressSmoothing());
+        checks.Add(CheckIdleFullRingVsOffline());
 
         // ── 4. 优先级校验 ───────────────────────────────────────
         checks.AddRange(CheckPriorities());
@@ -385,14 +386,24 @@ public static class Verifier
         }
         yield return new Check("DSH 状态桥：7 种 state 全部映射正确", allMapped, detail.ToString());
 
-        // progress 边界：100 与 0
+        // progress 边界：100 与 0（离线才是空环）
         var full = DshStatusFileSource.ToSnapshot(
             DshStatusFileSource.ParseKeyValue("state=completed\nprogress=100"));
-        var zero = DshStatusFileSource.ToSnapshot(
-            DshStatusFileSource.ParseKeyValue("state=idle\nprogress=0"));
+        var offline = DshStatusFileSource.ToSnapshot(
+            DshStatusFileSource.ParseKeyValue("state=offline\nprogress=0"));
         yield return new Check("DSH 状态桥：progress 边界（0/100）",
-            Math.Abs(full.Progress - 1.0) < 1e-9 && Math.Abs(zero.Progress - 0.0) < 1e-9,
-            $"100→{full.Progress:P0}，0→{zero.Progress:P0}");
+            Math.Abs(full.Progress - 1.0) < 1e-9 && Math.Abs(offline.Progress - 0.0) < 1e-9,
+            $"100→{full.Progress:P0}，offline 0→{offline.Progress:P0}");
+
+        // 空闲态必须满环：即使状态源写 progress=0，也要强制成 100%，
+        // 否则空闲与离线在托盘上无法区分。
+        var idleZero = DshStatusFileSource.ToSnapshot(
+            DshStatusFileSource.ParseKeyValue("state=idle\nprogress=0"));
+        var idleNoProgress = DshStatusFileSource.ToSnapshot(
+            DshStatusFileSource.ParseKeyValue("state=idle"));
+        yield return new Check("DSH 状态桥：空闲态强制满环（progress=0 → 100%）",
+            Math.Abs(idleZero.Progress - 1.0) < 1e-9 && Math.Abs(idleNoProgress.Progress - 1.0) < 1e-9,
+            $"idle+progress=0 → {idleZero.Progress:P0}，idle 无 progress → {idleNoProgress.Progress:P0}");
 
         // 缺字段容错
         var partial = DshStatusFileSource.ToSnapshot(
@@ -400,6 +411,93 @@ public static class Verifier
         yield return new Check("DSH 状态桥：缺 progress 字段不崩溃",
             partial.State == AgentState.Running && partial.Progress >= 0,
             $"state={partial.State} progress={partial.Progress:P0}");
+    }
+
+    /// <summary>
+    /// 空闲 vs 离线：空闲必须满环（100%），离线必须空环（0%），
+    /// 否则两者在托盘上只靠颜色深浅区分，远看几乎一样。
+    /// 这里同时校验「像素上确实一满一空」，而不只是数值。
+    /// </summary>
+    private static Check CheckIdleFullRingVsOffline()
+    {
+        var settings = new AppSettings();
+        settings.EnsureDefaults();
+
+        // 数值层：空闲/离线经状态源来的进度
+        var idleSnapshot = DshStatusFileSource.ToSnapshot(
+            DshStatusFileSource.ParseKeyValue("state=idle\nprogress=0"));
+        var offlineSnapshot = DshStatusFileSource.ToSnapshot(
+            DshStatusFileSource.ParseKeyValue("state=offline\nprogress=0"));
+        bool idleFull = Math.Abs(idleSnapshot.Progress - 1.0) < 1e-9;
+        bool offlineEmpty = Math.Abs(offlineSnapshot.Progress - 0.0) < 1e-9;
+
+        // 像素层：取 180°（环正下方）。满环时必然点亮，空环时只剩灰色轨道。
+        // 注意起点为 0°、顺时针，所以 320° 在弧起点之前、满环也不亮，不能用作判据。
+        const double probeDegrees = 180.0;
+        int covered = CountLitPixelsAtAngle(settings, AgentState.Idle, 1.0, probeDegrees);
+        int uncovered = CountLitPixelsAtAngle(settings, AgentState.Offline, 0.0, probeDegrees);
+        bool pixelOk = covered > 0 && uncovered == 0;
+
+        bool ok = idleFull && offlineEmpty && pixelOk;
+        return new Check("空闲满环 / 离线空环（视觉可区分）", ok,
+            $"解析：idle→{idleSnapshot.Progress:P0}，offline→{offlineSnapshot.Progress:P0}；" +
+            $"{probeDegrees:0}° 处点亮像素：空闲 {covered} 个，离线 {uncovered} 个");
+    }
+
+    /// <summary>
+    /// 统计指定角度上确实被「状态色」点亮的采样点数。
+    /// 判据要求色相饱和（非灰色轨道）+ 明度足够，仅靠色差会把灰色轨道误判成主环。
+    /// </summary>
+    private static int CountLitPixelsAtAngle(AppSettings settings, AgentState state, double progress, double degrees)
+    {
+        const int size = 256;
+        var bmp = RenderSample(settings, state, progress, size);
+        var style = settings.StyleFor(state);
+        var target = style.ToMediaColor();
+
+        // 状态色本身是灰色（如离线 #5A5A5A）时不能用饱和度判据，退回严格色差。
+        int tMax = Math.Max(target.R, Math.Max(target.G, target.B));
+        int tMin = Math.Min(target.R, Math.Min(target.G, target.B));
+        bool targetSaturated = (tMax - tMin) >= 40;
+
+        var (thickness, radius) = RingIconRenderer.ComputeRingGeometry(settings, size);
+        thickness = Math.Max(thickness, 1.0);
+
+        double rad = degrees * Math.PI / 180.0;
+        int lit = 0;
+        for (int i = -2; i <= 2; i++)
+        {
+            double r = radius + i * thickness / 5.0;
+            int x = (int)Math.Round(size / 2.0 + r * Math.Cos(rad));
+            int y = (int)Math.Round(size / 2.0 + r * Math.Sin(rad));
+            if (x < 0 || y < 0 || x >= size || y >= size)
+            {
+                continue;
+            }
+            var (pr, pg, pb, pa) = GetPixel(bmp, size, x, y);
+            if (pa < 128)
+            {
+                continue;
+            }
+            double dist = Math.Sqrt(
+                Math.Pow(pr - target.R, 2) + Math.Pow(pg - target.G, 2) + Math.Pow(pb - target.B, 2));
+
+            if (targetSaturated)
+            {
+                // 有色状态：既要色差小，也要有饱和度（排除灰色轨道 #3F3F3F）
+                int pMax = Math.Max(pr, Math.Max(pg, pb));
+                int pMin = Math.Min(pr, Math.Min(pg, pb));
+                if (dist <= 60 && (pMax - pMin) >= 30 && pMax >= 70)
+                {
+                    lit++;
+                }
+            }
+            else if (dist <= 20)
+            {
+                lit++;
+            }
+        }
+        return lit;
     }
 
     /// <summary>

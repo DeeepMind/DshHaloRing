@@ -50,8 +50,8 @@ Name: "autostart"; Description: "开机时自动启动 {#MyAppName}（可稍后�
 ; 自包含发布目录的全部文件（含 .NET 运行时，用户无需另装）
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; DSH 状态桥插件（供用户装到 DSH）
-Source: "plugin\dsh-haloring-status\*"; DestDir: "{app}\plugin\dsh-haloring-status"; Flags: ignoreversion recursesubdirs createallsubdirs
+; DSH 状态桥插件已拆分为独立仓库 DeeepMind/dsh-haloring-status，
+; 通过 dsh plugin add 安装，不再随安装包分发。
 
 ; 文档
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion isreadme

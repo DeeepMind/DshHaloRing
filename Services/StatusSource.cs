@@ -117,7 +117,8 @@ public sealed class DemoStatusSource : IStatusSource
 
     private void Publish(AgentState state, double progress, string? detail)
     {
-        Progress = Math.Clamp(progress, 0, 1);
+        // 空闲/待机一律满环：与离线的空环区分。演示驱动与手动推送都经过这里。
+        Progress = state == AgentState.Idle ? 1.0 : Math.Clamp(progress, 0, 1);
         SnapshotReceived?.Invoke(this, new StatusSnapshot
         {
             State = state,
@@ -381,6 +382,13 @@ public sealed class DshStatusFileSource : IStatusSource
                 System.Globalization.CultureInfo.InvariantCulture, out var percent))
         {
             snapshot.Progress = Math.Clamp(percent / 100.0, 0.0, 1.0);
+        }
+
+        // 空闲/待机：满环。离线才是空环——否则两者视觉上无法区分。
+        // 必须在解析完 progress 之后覆盖，保证任何入口（文件/JSON/演示）结果一致。
+        if (snapshot.State == AgentState.Idle)
+        {
+            snapshot.Progress = 1.0;
         }
 
         if (fields.TryGetValue("detail", out var detail))
