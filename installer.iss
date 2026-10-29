@@ -1,9 +1,9 @@
 ; DSH HaloRing 安装包脚本（Inno Setup 6）
 ; 用 ISCC.exe 编译：ISCC.exe installer.iss
-; 产物：dist\DshHaloRing-Setup-1.0.0.exe
+; 产物：dist\DshHaloRing-Setup-<version>.exe
 
 #define MyAppName "DSH HaloRing"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "DshHaloRing"
 #define MyAppExeName "DshHaloRing.exe"
 #define MyAppId "{{6C2E9B14-8F3A-4D71-9A5E-1B7C3D9E2F40}"
@@ -81,7 +81,7 @@ Type: files; Name: "{app}\startup-trace.log"
 Type: filesandordirs; Name: "{app}\data"
 
 [Code]
-// 安装前静默关闭正在运行的实例，避免文件占用导致安装失败
+// 安装前静默关闭正在运行的实例，避免文件占用导致安装失败。
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ResultCode: Integer;

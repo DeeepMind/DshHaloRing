@@ -22,6 +22,16 @@ try {
     Write-Host "构建 DSH HaloRing v$version" -ForegroundColor Cyan
     Write-Host ''
 
+    # ── 0. 版本号同步到 installer.iss ────────────────────
+    # 版本只维护 DshHaloRing.csproj 一处，这里自动写进 Inno 脚本，避免两处漂移。
+    $issPath = 'installer.iss'
+    $issText = Get-Content $issPath -Raw
+    $issNew = $issText -replace '#define MyAppVersion "[^"]*"', "#define MyAppVersion `"$version`""
+    if ($issNew -ne $issText) {
+        Set-Content $issPath $issNew -NoNewline -Encoding utf8
+        Write-Host "      已同步 installer.iss 版本 → $version" -ForegroundColor DarkGray
+    }
+
     # ── 1. 生成应用图标（若缺失）─────────────────────────
     if (-not (Test-Path 'assets\app.ico')) {
         Write-Host '[1/5] 生成应用图标…' -ForegroundColor Yellow
