@@ -59,46 +59,33 @@ progress = 25 + 70 × (1 - e^(-已完成step数 / 3.2))  [+8 若正在执行工�
 
 ## 快速开始
 
-### 方式 A：安装包（推荐普通用户）
+## 安装方式
 
-从 [Releases](../../releases) 下载 `DshHaloRing-Setup-x.y.z.exe`，双击安装。
+**方式一：安装包（推荐）**
+下载 `DshHaloRing-Setup-1.0.0.exe`，双击安装。
+自带 .NET 运行时，无需管理员权限。
 
-- **自带 .NET 运行时**，无需另装任何依赖
-- 装到当前用户目录，**不需要管理员权限**
-- 自动创建开始菜单项与卸载入口
-- 安装时可勾选「开机自启动」
+**方式二：便携版**
+下载 `DshHaloRing-1.0.0-portable.zip`，解压到任意目录，
+双击 `DshHaloRing.exe` 即可运行。
 
-安装完成后照第 2 步配置数据源即可。
+## 首次运行提示
 
-### 方式 B：从源码构建
+本版本未做代码签名，Windows 可能提示「已保护你的电脑」，
+点「更多信息」→「仍要运行」即可。
 
-**前置要求**：
-
-- Windows 11
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- DeepSeek Harness（桌面版）
-
-```powershell
-cd DshHaloRing
-dotnet build -c Release
-.\bin\Release\net8.0-windows\DshHaloRing.exe
-```
-
-### 1. 安装 DSH 状态桥插件
+## 1. 安装 DSH 状态桥插件
 
 托盘程序靠一个 DSH 宿主插件获取状态。在 DSH 所在终端执行：
 
 ```powershell
-dsh plugin --profile desktop add "file:<仓库路径>/DshHaloRing/plugin/dsh-haloring-status"
+dsh plugin --profile desktop add "https://github.com/DeeepMind/DshHaloRing/tree/master/plugin/dsh-haloring-status"
 ```
-
-> **重要**：插件安装后会复制到 `~/.dsh/profiles/<profile>/node_modules/`，
-> DSH 实际从这里加载。修改插件源码后，两处都要同步，否则改动不生效。
 
 安装后**重启 DSH 一次**加载插件。验证：`%USERPROFILE%\.dsh\dsh-status.txt`
 应出现且每秒更新。
 
-### 2. 配置数据源
+### 2. 配置数据源（默认即可）
 
 首次运行默认用演示驱动。右键托盘图标 →「外观设置」→「状态源」→
 选 **DSH 状态桥（推荐）**，路径留空即自动指向 `%USERPROFILE%\.dsh\dsh-status.txt`。
@@ -109,80 +96,6 @@ dsh plugin --profile desktop add "file:<仓库路径>/DshHaloRing/plugin/dsh-hal
 - **右键** → 菜单（进度显示 / 外观设置 / 恢复默认外观 / 开机自启动 / 退出）
 
 ---
-
-## 打包发布
-
-项目自带一键构建脚本：
-
-```powershell
-# 完整构建（exe + 安装包）
-.\build-release.ps1
-
-# 只构建可运行文件，跳过安装包
-.\build-release.ps1 -SkipInstaller
-```
-
-产物：
-
-| 路径 | 说明 |
-|---|---|
-| `dist\DshHaloRing-Setup-<version>.exe` | Inno Setup 安装包，约 47 MB |
-| `publish-dir\` | 自包含目录版，可直接运行或绿色部署 |
-
-**编译安装包需要 [Inno Setup 6](https://jrsoftware.org/isdl.php)**：
-
-```powershell
-winget install JRSoftware.InnoSetup
-```
-
-> **为什么不用 `PublishSingleFile`**
->
-> 单文件版启动时需把内嵌程序解压到 `%TEMP%\.net`。
-> 在某些受限环境（临时目录 ACL 异常、只读用户配置）下会因
-> 「Failed to create default extraction directory」而启动失败。
-> 目录形式没有这个依赖，更可靠——安装包本身已经把 245 个文件压成 47 MB。
-
-
----
-
-## 数据链路
-
-```
-DSH 宿主
-  └─ 插件 dsh-haloring-status（每 300ms 轮询会话事件）
-       ├─ 跟踪 turn/start、step/start、step/end、tool/call、tool/result
-       ├─ 计算进度、合成状态优先级
-       └─ 写 ~/.dsh/dsh-status.txt（每 250ms~1s）
-
-DshHaloRing 托盘程序（每 300ms 轮询）
-  ├─ DshStatusFileSource 解析 key=value 格式
-  ├─ StateAggregator 按优先级合成最终状态
-  ├─ IconAnimationLoop 30fps 推进动画 + 线性插值进度
-  └─ RingIconRenderer 逐帧渲染 → 多尺寸 ico → 托盘图标
-```
-
-### 状态文件格式
-
-```ini
-version=1
-state=running          # idle / running / attention / degraded / error / completed / offline
-priority=2
-updated=1793210745187  # Unix 毫秒，读取方据此判断心跳
-pid=12716
-detail=Agent 运行中（turn 35）
-progress=44            # 0..100，非精确提示
-attention=0
-approvals=0
-turns=1
-sessions=1
-completed=0
-degraded=0
-error=0
-```
-
-超过心跳超时（默认 8 秒）无更新即判为离线。
-
-
 ## 许可证
 
 [GPL-3.0](LICENSE)
