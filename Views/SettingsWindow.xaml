@@ -1,0 +1,258 @@
+<Window x:Class="DshHaloRing.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DSH HaloRing · 外观设置"
+        Width="880" Height="660"
+        MinWidth="760" MinHeight="560"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource WindowBackgroundBrush}"
+        FontFamily="Segoe UI"
+        FontSize="12"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+
+    <Grid Margin="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="16" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧：实时预览 -->
+        <Border Grid.Column="0" Style="{StaticResource Card}" VerticalAlignment="Stretch">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="实时预览" Style="{StaticResource SectionHeader}" />
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock Text="模拟状态" Style="{StaticResource FieldLabel}" Width="70" />
+                        <ComboBox x:Name="PreviewStateCombo" Width="170"
+                                  SelectionChanged="OnPreviewStateChanged" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock Text="进度" Style="{StaticResource FieldLabel}" Width="70" />
+                        <Slider x:Name="PreviewProgressSlider" Minimum="0" Maximum="100"
+                                Value="65" Width="150" ValueChanged="OnPreviewProgressChanged" />
+                        <TextBlock x:Name="PreviewProgressText" Text="65%" Width="40"
+                                   VerticalAlignment="Center" Style="{StaticResource FieldLabel}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="动画" Style="{StaticResource FieldLabel}" Width="70" />
+                        <CheckBox x:Name="PreviewAnimateCheck" Content="预览中播放动画"
+                                  IsChecked="True" Checked="OnPreviewAnimationToggled"
+                                  Unchecked="OnPreviewAnimationToggled" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Viewbox Stretch="Uniform" Margin="0,4,0,0">
+                    <Grid Width="200" Height="200">
+                        <Border CornerRadius="12" Background="#EFEFEF" />
+                        <Image x:Name="PreviewImage" Width="192" Height="192"
+                               RenderOptions.BitmapScalingMode="HighQuality" />
+                    </Grid>
+                </Viewbox>
+            </DockPanel>
+        </Border>
+
+        <!-- 右侧：设置分区 -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+
+                    <!-- 环形几何 -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="环形几何" Style="{StaticResource SectionHeader}" />
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="56" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="起始角度（°）" Style="{StaticResource FieldLabel}" />
+                                <Slider Grid.Column="1" x:Name="StartAngleSlider" Minimum="0" Maximum="359"
+                                        TickFrequency="15" IsSnapToTickEnabled="False"
+                                        ValueChanged="OnRingGeometryChanged" />
+                                <TextBlock Grid.Column="2" x:Name="StartAngleText" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Right" />
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="56" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="环直径比例" Style="{StaticResource FieldLabel}" />
+                                <Slider Grid.Column="1" x:Name="RadiusSlider" Minimum="0.3" Maximum="0.95"
+                                        ValueChanged="OnRingGeometryChanged" />
+                                <TextBlock Grid.Column="2" x:Name="RadiusText" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Right" />
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="56" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="线宽" Style="{StaticResource FieldLabel}" />
+                                <Slider Grid.Column="1" x:Name="ThicknessSlider" Minimum="0.02" Maximum="0.30"
+                                        ValueChanged="OnRingGeometryChanged" />
+                                <TextBlock Grid.Column="2" x:Name="ThicknessText" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Right" />
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="56" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="辉光强度" Style="{StaticResource FieldLabel}" />
+                                <Slider Grid.Column="1" x:Name="GlowSlider" Minimum="0" Maximum="1"
+                                        ValueChanged="OnRingGeometryChanged" />
+                                <TextBlock Grid.Column="2" x:Name="GlowText" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Right" />
+                            </Grid>
+
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="56" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="中心点大小" Style="{StaticResource FieldLabel}" />
+                                <Slider Grid.Column="1" x:Name="DotSlider" Minimum="0" Maximum="0.85"
+                                        ValueChanged="OnRingGeometryChanged" />
+                                <TextBlock Grid.Column="2" x:Name="DotText" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Right" />
+                            </Grid>
+
+                            <WrapPanel Margin="0,8,0,0">
+                                <CheckBox x:Name="ClockwiseCheck" Content="顺时针" IsChecked="True"
+                                          Margin="0,4,18,4" Checked="OnRingGeometryChanged"
+                                          Unchecked="OnRingGeometryChanged" />
+                                <CheckBox x:Name="RoundCapCheck" Content="圆头端点" IsChecked="True"
+                                          Margin="0,4,18,4" Checked="OnRingGeometryChanged"
+                                          Unchecked="OnRingGeometryChanged" />
+                                <CheckBox x:Name="ShowTrackCheck" Content="显示轨道" IsChecked="True"
+                                          Margin="0,4,18,4" Checked="OnRingGeometryChanged"
+                                          Unchecked="OnRingGeometryChanged" />
+                                <CheckBox x:Name="ShowProgressCheck" Content="显示进度弧" IsChecked="True"
+                                          Margin="0,4,18,4" Checked="OnRingGeometryChanged"
+                                          Unchecked="OnRingGeometryChanged" />
+                                <CheckBox x:Name="AnimationsCheck" Content="启用动画" IsChecked="True"
+                                          Margin="0,4,18,4" Checked="OnRingGeometryChanged"
+                                          Unchecked="OnRingGeometryChanged" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 状态配色 -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="状态配色" Style="{StaticResource SectionHeader}" />
+                            <TextBlock Text="点击色块可调整颜色；不透明度控制该状态的基础亮度（动画会在此基础上调制）。"
+                                       Style="{StaticResource FieldLabel}" Margin="0,0,0,10" TextWrapping="Wrap" />
+                            <StackPanel x:Name="StateColorList" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 主题 -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="主题" Style="{StaticResource SectionHeader}" />
+                            <TextBlock Text="切换主题会同时改变底板色与轨道色，其他自定义参数不受影响。"
+                                       Style="{StaticResource FieldLabel}" Margin="0,0,0,10" TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="配色主题" Style="{StaticResource FieldLabel}" Width="130" />
+                                <ComboBox x:Name="ThemeCombo" Width="220" SelectionChanged="OnThemeChanged">
+                                    <ComboBoxItem Content="夜间（深色底板 #202020）" Tag="dark" />
+                                    <ComboBoxItem Content="日间（浅色底板 #F2F2F2）" Tag="light" />
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 图标底板 -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="图标底板" Style="{StaticResource SectionHeader}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,2">
+                                <TextBlock Text="底色" Style="{StaticResource FieldLabel}" Width="130" />
+                                <Border x:Name="BackgroundSwatch" Width="28" Height="22" CornerRadius="4"
+                                        BorderBrush="#D6D6D6" BorderThickness="1" Cursor="Hand"
+                                        MouseLeftButtonUp="OnBackgroundSwatchClick" />
+                                <TextBlock x:Name="BackgroundHexText" Style="{StaticResource FieldLabel}"
+                                           Margin="10,0,0,0" />
+                                <CheckBox x:Name="TransparentBackgroundCheck" Content="透明底板"
+                                          Margin="24,0,0,0" Checked="OnBackgroundChanged"
+                                          Unchecked="OnBackgroundChanged" />
+                            </StackPanel>
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="56" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="圆角比例" Style="{StaticResource FieldLabel}" />
+                                <Slider Grid.Column="1" x:Name="CornerSlider" Minimum="0" Maximum="0.5"
+                                        ValueChanged="OnBackgroundChanged" />
+                                <TextBlock Grid.Column="2" x:Name="CornerText" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Right" />
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button x:Name="ExportIconButton" Content="导出自定义图标…" Click="OnExportIcon" />
+                                <CheckBox x:Name="StartupCheck" Content="开机自动启动" Margin="20,0,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 状态源 -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="状态源" Style="{StaticResource SectionHeader}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,2">
+                                <TextBlock Text="驱动方式" Style="{StaticResource FieldLabel}" Width="130" />
+                                <ComboBox x:Name="SourceCombo" Width="220" SelectionChanged="OnSourceChanged">
+                                    <ComboBoxItem Content="手动/演示驱动" Tag="demo" />
+                                    <ComboBoxItem Content="DSH 状态桥（推荐）" Tag="dshfile" />
+                                    <ComboBoxItem Content="本地 JSON 文件" Tag="json" />
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <TextBlock Text="状态文件路径" Style="{StaticResource FieldLabel}" Width="130" />
+                                <TextBox x:Name="JsonPathBox" Width="320" />
+                                <Button Content="浏览…" Margin="8,0,0,0" Click="OnBrowseJson" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <TextBlock Text="心跳超时（秒）" Style="{StaticResource FieldLabel}" Width="130" />
+                                <TextBox x:Name="HeartbeatBox" Width="60" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabel}" Margin="0,8,0,0" TextWrapping="Wrap"
+                                       Text="DSH 状态桥：读取 %USERPROFILE%\.dsh\dsh-status.txt（由 dsh-trafficmonitor-status 插件写入，路径留空即用默认值）。" />
+                            <TextBlock Style="{StaticResource FieldLabel}" Margin="0,4,0,0" TextWrapping="Wrap"
+                                       Text="JSON 格式示例：{ &quot;state&quot;: &quot;running&quot;, &quot;progress&quot;: 0.42, &quot;detail&quot;: &quot;调用模型&quot; }" />
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 底部按钮 -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                <Button Content="恢复默认" Click="OnResetDefaults" />
+                <Button Content="取消" Click="OnCancel" Margin="8,0,0,0" />
+                <Button Content="保存" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0"
+                        Click="OnSave" IsDefault="True" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

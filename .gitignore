@@ -1,0 +1,42 @@
+# ── .NET 构建产物 ────────────────────────────────
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ── 发布产物（由 build-release.ps1 生成）────────
+publish/
+publish-dir/
+dist/
+*.zip
+
+# ── 运行时生成的自检/诊断输出 ─────────────────────
+verify-out*/
+diag-out/
+icon-samples/
+verify-ring/
+sample-out/
+assets/icon-src/
+startup-trace.log
+crash.log
+tray-selftest.log
+animcheck.txt
+install-test.log
+
+# ── 配置与本地状态 ────────────────────────────────
+settings.json
+settings.json.corrupt
+data/
+*.log
+
+# ── 编辑器 ────────────────────────────────────────
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# ── 操作系统 ──────────────────────────────────────
+.DS_Store
+Thumbs.db

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <!-- WPF 与 WinForms 的隐式 using 会同时引入 Application/Brush/Pen/Point/Color 等同名类型，
+         产生 CS0104 歧义。关闭隐式 using，由各文件显式引用。 -->
+    <ImplicitUsings>disable</ImplicitUsings>
+
+    <UseAppHost>true</UseAppHost>
+
+    <AssemblyName>DshHaloRing</AssemblyName>
+    <RootNamespace>DshHaloRing</RootNamespace>
+    <Version>1.0.0</Version>
+    <AssemblyTitle>DSH HaloRing</AssemblyTitle>
+    <Product>DSH HaloRing</Product>
+    <Company>DshHaloRing</Company>
+    <Copyright>GPL-3.0</Copyright>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <!-- 发布配置：自包含单文件，用户无需安装 .NET 运行时。
+       开发构建（dotnet build）仍走框架依赖，保持快速迭代。 -->
+  <PropertyGroup Condition="'$(PublishSingleFile)' == 'true' or '$(Configuration)' == 'Release-Publish'">
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' != 'Release-Publish'">
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
+</Project>
